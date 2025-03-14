@@ -843,6 +843,9 @@ class YoutubeDL:
 
         self.archive = preload_download_archive(self.params.get('download_archive'))
 
+        self.info_proxy = self.params.get('info_proxy')
+        self.download_proxy = self.params.get('download_proxy')
+
     def warn_if_short_id(self, argv):
         # short YouTube ID starting with dash?
         idxs = [
@@ -1778,12 +1781,35 @@ class YoutubeDL:
             cookie.domain = f'.{parsed.hostname}'
             self.cookiejar.set_cookie(cookie)
 
+    @contextlib.contextmanager
+    def override_proxy(self, proxy, stage):
+        """
+        Temporarily override the proxy for the given stage.
+        Logs the stage and proxy in use, clears the cached proxies and request director so that
+        new requests use the updated proxy settings.
+        """
+        original = self.params.get('proxy')
+        print(f"[info] {stage} stage: Using proxy: {proxy if proxy else 'None'}", flush=True)
+        if proxy is not None:
+            self.params['proxy'] = proxy
+        # Remove cached properties so they are rebuilt with the new proxy settings
+        self.__dict__.pop('proxies', None)
+        self.__dict__.pop('_request_director', None)
+        try:
+            yield
+        finally:
+            # Restore original proxy setting
+            self.params['proxy'] = original
+            self.__dict__.pop('proxies', None)
+            self.__dict__.pop('_request_director', None)
+            print(f"[info] {stage} stage: Restored proxy to: {original if original else 'None'}", flush=True)
+
     @_handle_extraction_exceptions
     def __extract_info(self, url, ie, download, extra_info, process):
         self._apply_header_cookies(url)
-
         try:
-            ie_result = ie.extract(url)
+            with self.override_proxy(self.params.get('info_proxy'), "Info extraction"):
+                ie_result = ie.extract(url)
         except UserNotLive as e:
             if process:
                 if self.params.get('wait_for_video'):
@@ -3223,7 +3249,10 @@ class YoutubeDL:
         new_info = self._copy_infodict(info)
         if new_info.get('http_headers') is None:
             new_info['http_headers'] = self._calc_headers(new_info)
-        return fd.download(name, new_info, subtitle)
+        # Wrap the downloader call with the download proxy override
+        with self.override_proxy(self.params.get('download_proxy'), "Download"):
+            result = fd.download(name, new_info, subtitle)
+        return result
 
     def existing_file(self, filepaths, *, default_overwrite=True):
         existing_files = list(filter(os.path.exists, orderedSet(filepaths)))
