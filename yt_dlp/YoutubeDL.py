@@ -649,6 +649,7 @@ class YoutubeDL:
         self._playlist_urls = set()
         self.cache = Cache(self)
         self.__header_cookies = []
+        self.last_stage = 'preparing'
 
         # compat for API: load plugins if they have not already
         if not all_plugins_loaded.value:
@@ -1809,6 +1810,7 @@ class YoutubeDL:
         self._apply_header_cookies(url)
         try:
             with self.override_proxy(self.params.get('info_proxy'), "Info extraction"):
+                self.last_stage = 'info'
                 ie_result = ie.extract(url)
         except UserNotLive as e:
             if process:
@@ -3251,6 +3253,7 @@ class YoutubeDL:
             new_info['http_headers'] = self._calc_headers(new_info)
         # Wrap the downloader call with the download proxy override
         with self.override_proxy(self.params.get('download_proxy'), "Download"):
+            self.last_stage = 'download'
             result = fd.download(name, new_info, subtitle)
         return result
 
