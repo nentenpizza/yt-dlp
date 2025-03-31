@@ -2,31 +2,18 @@ name: Sync Fork
 
 on:
   schedule:
-    - cron: '*/15 * * * *' # Каждые 15 минут
-  workflow_dispatch: # Можно вручную запустить
+    - cron: '*/15 * * * *' # каждые 15 минут
+  workflow_dispatch: # можно вручную запустить
 
 jobs:
   sync:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout your fork
-        uses: actions/checkout@v4
+      - name: Sync upstream changes
+        uses: tgymnich/fork-sync@v1.8
         with:
-          persist-credentials: false # Чтобы не использовать токен от Actions
-          fetch-depth: 0
-
-      - name: Add upstream remote
-        run: git remote add upstream https://github.com/yt-dlp/yt-dlp.git
-
-      - name: Fetch upstream
-        run: git fetch upstream
-
-      - name: Rebase or merge upstream/main
-        run: |
-          git checkout main
-          git rebase upstream/master || git rebase upstream/main || git merge upstream/master || git merge upstream/main
-
-      - name: Push changes to your fork
-        uses: ad-m/github-push-action@v0.8.0
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          owner: nentenpizza
+          base: master
+          head: master
+          token: ${{ secrets.TOKEN }}
