@@ -920,6 +920,8 @@ def parse_options(argv=None):
         'enable_file_urls': opts.enable_file_urls,
         'http_headers': opts.headers,
         'proxy': opts.proxy,
+        'info_proxy': opts.info_proxy,
+        'download_proxy': opts.download_proxy,
         'socket_timeout': opts.socket_timeout,
         'bidi_workaround': opts.bidi_workaround,
         'debug_printtraffic': opts.debug_printtraffic,

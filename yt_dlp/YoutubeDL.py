@@ -650,6 +650,8 @@ class YoutubeDL:
         self.cache = Cache(self)
         self.__header_cookies = []
         self.last_stage = 'preparing'
+        self.info_proxy = self.params.get('info_proxy')
+        self.download_proxy = self.params.get('download_proxy')
 
         # compat for API: load plugins if they have not already
         if not all_plugins_loaded.value:
