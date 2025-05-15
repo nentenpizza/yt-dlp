@@ -922,6 +922,7 @@ def parse_options(argv=None):
         'proxy': opts.proxy,
         'info_proxy': opts.info_proxy,
         'download_proxy': opts.download_proxy,
+        'x_json_errors': opts.x_json_errors,
         'socket_timeout': opts.socket_timeout,
         'bidi_workaround': opts.bidi_workaround,
         'debug_printtraffic': opts.debug_printtraffic,
