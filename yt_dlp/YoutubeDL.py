@@ -23,6 +23,7 @@ import time
 import tokenize
 import traceback
 import unicodedata
+import json
 
 from .cache import Cache
 from .compat import urllib  # isort: split
@@ -653,6 +654,7 @@ class YoutubeDL:
         self.last_stage = 'preparing'
         self.info_proxy = self.params.get('info_proxy')
         self.download_proxy = self.params.get('download_proxy')
+        self.x_json_errors = self.params.get('x-json-errors')
 
         # compat for API: load plugins if they have not already
         if not all_plugins_loaded.value:
@@ -1123,6 +1125,15 @@ class YoutubeDL:
         Do the same as trouble, but prefixes the message with 'ERROR:', colored
         in red if stderr is a tty file.
         """
+
+        if self.x_json_errors:
+            message = {'error': message, 'stage': self.last_stage}
+            if self.last_stage:
+                message['stage'] = self.last_stage
+
+            msg = json.dumps(message)
+            self.to_stderr(f'{msg}', *args, **kwargs)
+
         self.trouble(f'{self._format_err("ERROR:", self.Styles.ERROR)} {message}', *args, **kwargs)
 
     def write_debug(self, message, only_once=False):
